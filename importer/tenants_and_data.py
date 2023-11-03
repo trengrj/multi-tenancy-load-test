@@ -7,6 +7,7 @@ import uuid
 import os
 import requests
 import string
+import h5py
 from loguru import logger
 from typing import Optional
 from prometheus_client import start_http_server, Counter, Summary
@@ -17,10 +18,14 @@ client = weaviate.Client(f"http://{host}", timeout_config=(20, 240))
 
 total_tenants = int(os.getenv("TOTAL_TENANTS"))
 tenants_per_cycle = int(os.getenv("TENANTS_PER_CYCLE"))
-objects_per_tenant = int(os.getenv("OBJECTS_PER_TENANT"))
 prometheus_port = int(os.getenv("PROMETHEUS_PORT") or 8000)
 implicit_ratio = float(os.getenv("IMPLICIT_TENANT_RATIO"))
+vectors_file = str(os.getenv("VECTORS_FILE") or "/app/fiqa-12k-384-dot.hdf5")
 
+h5_file = h5py.File(vectors_file)
+vectors = h5_file["train"]
+
+objects_per_tenant = len(vectors)
 
 def random_name(length):
     letters = string.ascii_lowercase
@@ -107,28 +112,13 @@ def load_records(client: weaviate.Client, tenant_names):
             callback=handle_errors,
         )
         with client.batch as batch:
-            for i in range(objects_per_tenant):
+            for i in range(len(vectors)):
                 batch.add_data_object(
                     data_object={
                         "tenant_id": tenant,
-                        "int1": random.randint(0, 10000),
-                        "int2": random.randint(0, 10000),
-                        # "int3": random.randint(0, 10000),
-                        # "int4": random.randint(0, 10000),
-                        # "int5": random.randint(0, 10000),
-                        "number1": random.random(),
-                        "number2": random.random(),
-                        # "number3": random.random(),
-                        # "number4": random.random(),
-                        # "number5": random.random(),
-                        "text1": f"{random.randint(0, 10000)}",
-                        "text2": f"{random.randint(0, 10000)}",
-                        # "text3": f"{random.randint(0, 10000)}",
-                        # "text4": f"{random.randint(0, 10000)}",
-                        # "text5": f"{random.randint(0, 10000)}",
                     },
                     tenant=tenant,
-                    vector=np.random.rand(32, 1),
+                    vector=vectors[i],
                     class_name="MultiTenancyTest",
                 )
         # logger.debug(f"Imported {objects_per_tenant} objs for tenant {tenant}")

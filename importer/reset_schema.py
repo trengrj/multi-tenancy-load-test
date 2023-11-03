@@ -17,7 +17,7 @@ def reset_schema(client: weaviate.Client):
     client.schema.delete_all()
     class_payload = {
         "class": "MultiTenancyTest",
-        "description": "A class to test multi-tenancy with many props",
+        "description": "A class to test multi-tenancy with flat index type",
         "vectorizer": "none",
         "replicationConfig": {
             "factor": replication_factor,
@@ -28,22 +28,13 @@ def reset_schema(client: weaviate.Client):
                 "tokenization": "field",
                 "name": "tenant_id",
             },
-            {"dataType": ["int"], "name": "int1"},
-            {"dataType": ["int"], "name": "int2"},
-            # {"dataType": ["int"], "name": "int3"},
-            # {"dataType": ["int"], "name": "int4"},
-            # {"dataType": ["int"], "name": "int5"},
-            {"dataType": ["text"], "name": "text1"},
-            {"dataType": ["text"], "name": "text2"},
-            # {"dataType": ["text"], "name": "text3"},
-            # {"dataType": ["text"], "name": "text4"},
-            # {"dataType": ["text"], "name": "text5"},
-            {"dataType": ["number"], "name": "number1"},
-            {"dataType": ["number"], "name": "number2"},
-            # {"dataType": ["number"], "name": "number3"},
-            # {"dataType": ["number"], "name": "number4"},
-            # {"dataType": ["number"], "name": "number5"},
         ],
+        "vectorIndexType": "flat",
+        "vectorIndexConfig": {
+            "distance": "dot",
+            "fullyOnDisk": True,
+            "quantization": False,
+        },
         "multiTenancyConfig": {
             "enabled": True,
             "autoTenantCreation": True,

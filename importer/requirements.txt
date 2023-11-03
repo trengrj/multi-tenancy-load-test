@@ -1,4 +1,4 @@
+h5py==3.10.0
 loguru==0.5.3
 numpy==1.26.0
-prometheus-client>=0.17.0
-
+prometheus-client==0.18.0
